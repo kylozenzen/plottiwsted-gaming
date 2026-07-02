@@ -1,0 +1,9 @@
+[
+  { "clue": "Blue hedgehog runs fast.", "answer": "sonic", "platform": "Genesis" },
+  { "clue": "Block world with creepers.", "answer": "minecraft", "platform": "PC" },
+  { "clue": "Battle royale, build or die.", "answer": "fortnite", "platform": "Multi" },
+  { "clue": "Must save princess in Mushroom Kingdom.", "answer": "mario", "platform": "NES" },
+  { "clue": "Loot shooter on Pandora.", "answer": "borderlands", "platform": "PS" },
+  { "clue": "Frozen fighter says \"Get over here!\"", "answer": "mortal kombat", "platform": "Arcade" },
+  { "clue": "Yoga flame street warrior.", "answer": "street fighter", "platform": "Arcade" }
+]
