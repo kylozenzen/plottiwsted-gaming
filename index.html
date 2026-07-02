@@ -74,9 +74,12 @@
       font-size:0.9rem; min-height:60px; min-width:120px;
       border-radius:8px;
     }
-    button:hover { 
-      background:#0ff; color:#000; box-shadow:0 0 15px #0ff; 
+    button:hover {
+      background:#0ff; color:#000; box-shadow:0 0 15px #0ff;
       transform:scale(0.95);
+    }
+    button:disabled {
+      opacity:0.4; cursor:not-allowed; pointer-events:none;
     }
     
     .stats-bar { display:flex; justify-content:space-between; margin-bottom:1rem; font-size:0.8rem; }
@@ -291,17 +294,36 @@
       
       let current = 0, lives = 5, hintsUsed = 0, score = 0, combo = 0, maxCombo = 0;
       let isProcessing = false, isFinalRound = false;
-      
-      const questions = [
+
+      let questions = [];
+
+      // Fallback clues used only if clues.json fails to load (e.g. opened via file://).
+      const fallbackQuestions = [
         {clue: 'Blue hedgehog runs fast.', answer: 'sonic', platform: 'Genesis'},
         {clue: 'Block world with creepers.', answer: 'minecraft', platform: 'PC'},
-        {clue: 'Battle royale, build or die.', answer: 'fortnite', platform: 'Multi'},
-        {clue: 'Must save princess in Mushroom Kingdom.', answer: 'mario', platform: 'NES'},
-        {clue: 'Loot shooter on Pandora.', answer: 'borderlands', platform: 'PS'},
-        {clue: 'Frozen fighter says "Get over here!"', answer: 'mortal kombat', platform: 'Arcade'},
-        {clue: 'Yoga flame street warrior.', answer: 'street fighter', platform: 'Arcade'}
+        {clue: 'Must save princess in Mushroom Kingdom.', answer: 'mario', platform: 'NES'}
       ];
-      
+
+      const newGameBtn = document.getElementById('newGame');
+
+      async function loadClues() {
+        newGameBtn.disabled = true;
+        newGameBtn.textContent = 'LOADING...';
+        try {
+          const res = await fetch('clues.json');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          questions = await res.json();
+        } catch (error) {
+          console.error('Failed to load clues.json, using fallback clues:', error);
+          questions = fallbackQuestions;
+        } finally {
+          newGameBtn.disabled = false;
+          newGameBtn.textContent = 'NEW GAME';
+        }
+      }
+
+      loadClues();
+
       const comboMessages = ['2 HIT COMBO!', '3 HIT COMBO!', 'EXCELLENT!', 'OUTSTANDING!', 'PERFECT!'];
       
       const easterEggs = {
