@@ -2,74 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Plot Twisted: Gaming Edition</title>
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='3' width='58' height='58' rx='9' fill='%230a0a0a' stroke='%2300ffff' stroke-width='2.5'/%3E%3Crect x='12' y='11' width='40' height='35' rx='4' fill='%23242424' stroke='%23ff33aa' stroke-width='2'/%3E%3Crect x='18' y='16' width='28' height='16' rx='2' fill='%23000' stroke='%23ffaa00' stroke-width='1.5'/%3E%3Cg stroke='%2300ffff' stroke-width='2.4' fill='none' stroke-linecap='square'%3E%3Cpath d='M23 19 V29 M23 19 H28 a3 3 0 0 1 0 6 H23'/%3E%3Cpath d='M33 19 H43 M38 19 V29'/%3E%3C/g%3E%3Crect x='16' y='49' width='32' height='8' rx='1.5' fill='%23facc15'/%3E%3Crect x='20' y='51' width='3' height='4' fill='%230a0a0a'/%3E%3Crect x='26' y='51' width='3' height='4' fill='%230a0a0a'/%3E%3Crect x='32' y='51' width='3' height='4' fill='%230a0a0a'/%3E%3Crect x='38' y='51' width='3' height='4' fill='%230a0a0a'/%3E%3C/svg%3E" />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body {
-      width:100%; height:100%; background:#000; overflow:hidden;
+      width:100%; min-height:100dvh; background:#000; overflow:hidden;
       font-family:'Press Start 2P',monospace; color:#0ff;
     }
     #bezel { position:fixed; inset:0; border:20px solid #111; border-radius:20px; box-shadow: inset 0 0 40px #0ff; pointer-events:none; }
     #bezel::before { content:''; position:absolute; inset:10px; background: repeating-linear-gradient(transparent 0 4px, rgba(255,255,255,0.05) 4px 8px); animation:scan 0.1s linear infinite; }
     @keyframes scan { to { transform:translateY(8px); } }
-    
-    .insertCoin {
-      position:absolute; top:100px; left:50%; transform:translateX(-50%);
+
+    .insert-coin {
       font-size:1rem; color:#ffaa00; text-shadow:0 0 8px #ffaa00;
-      animation:flash 1s steps(2) infinite;
-      pointer-events:none;
+      animation:flash 1s steps(2) infinite; margin-bottom:1.5rem;
     }
+    .menu-stack { display:flex; flex-direction:column; align-items:center; gap:1rem; margin:1.5rem 0; }
+    .menu-stack button { width:240px; }
     @keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.2} }
-    
+
     .loading-screen {
       position:fixed; inset:0; background:#000; display:none; flex-direction:column;
       align-items:center; justify-content:center; z-index:1000;
     }
-    .cartridge { 
-      width:250px; height:150px; background:#888; border:6px solid #666; 
-      border-radius:12px; position:relative; margin-bottom:2rem; 
+    .cartridge {
+      width:250px; height:150px; background:#888; border:6px solid #666;
+      border-radius:12px; position:relative; margin-bottom:2rem;
     }
-    .cartridge::before { 
-      content:'PLOT TWISTED'; position:absolute; top:15px; left:50%; 
-      transform:translateX(-50%); font-size:0.8rem; color:#000; 
+    .cartridge::before {
+      content:'PLOT TWISTED'; position:absolute; top:15px; left:50%;
+      transform:translateX(-50%); font-size:0.8rem; color:#000;
     }
     .loading-text { color:#0ff; font-size:1.5rem; text-shadow:0 0 8px #0ff; }
-    
-    .container { 
-      position:relative; width:100%; height:100%; display:flex; 
+
+    .container {
+      position:relative; width:100%; height:100dvh; display:flex;
       align-items:center; justify-content:center; padding:15px;
     }
-    
-    .screen { 
-      display:none; flex-direction:column; align-items:center; 
+
+    .screen {
+      display:none; flex-direction:column; align-items:center;
       text-align:center; width:100%; height:100%; justify-content:center;
     }
     .screen.active { display:flex; }
-    
-    .panel { 
-      background:#111; border:4px solid #0ff; border-radius:15px; 
+
+    .panel {
+      background:#111; border:4px solid #0ff; border-radius:15px;
       padding:2rem; width:90%; max-width:600px; position:relative;
     }
+    /* Menu panels may scroll if they overrun a short screen; gameplay never does. */
+    #startScreen .panel, #howToScreen .panel,
+    #settingsScreen .panel, #gameOverScreen .panel {
+      max-height:calc(100dvh - 30px); overflow-y:auto;
+    }
     .panel.fatality { border-color:#f00; box-shadow:0 0 25px #f00; background:#220000; }
-    
+
     h1 { font-size:2rem; margin-bottom:1rem; color:#ff33aa; text-shadow:0 0 10px #ff33aa; }
     .subtitle { font-size:1rem; margin-bottom:1.5rem; color:#ffaa00; text-shadow:0 0 8px #ffaa00; }
-    .finish-him { 
-      font-size:2.5rem; color:#f00; text-shadow:0 0 15px #f00; 
-      animation:finishPulse 0.5s infinite; margin-bottom:1.5rem; 
+    .finish-him {
+      font-size:2.5rem; color:#f00; text-shadow:0 0 15px #f00;
+      animation:finishPulse 0.5s infinite; margin-bottom:1.5rem;
     }
     @keyframes finishPulse { 0%,100%{opacity:1; transform:scale(1)} 50%{opacity:0.8; transform:scale(1.1)} }
-    
-    .menu-row, .btn-row { 
-      display:flex; justify-content:center; gap:1rem; margin-bottom:1.5rem; 
+
+    .menu-row, .btn-row {
+      display:flex; justify-content:center; gap:1rem; margin-bottom:1.5rem;
       flex-wrap:wrap;
     }
-    
-    button { 
-      background:#000; border:4px solid #0ff; color:#0ff; 
-      padding:1.2rem 2rem; cursor:pointer; text-shadow:0 0 6px #0ff; 
+
+    button {
+      background:#000; border:4px solid #0ff; color:#0ff;
+      padding:1.2rem 2rem; cursor:pointer; text-shadow:0 0 6px #0ff;
       font-family:'Press Start 2P',monospace; transition:all 0.2s;
       font-size:0.9rem; min-height:60px; min-width:120px;
       border-radius:8px;
@@ -81,29 +88,31 @@
     button:disabled {
       opacity:0.4; cursor:not-allowed; pointer-events:none;
     }
-    
+
     .stats-bar { display:flex; justify-content:space-between; margin-bottom:1rem; font-size:0.8rem; }
     .stat { color:#ffaa00; text-shadow:0 0 4px #ffaa00; }
     .combo { color:#f00; text-shadow:0 0 4px #f00; font-size:1.2rem; animation:comboGlow 0.5s infinite; }
     @keyframes comboGlow { 0%,100%{opacity:1} 50%{opacity:0.7} }
-    
+
+    .progress { color:#0ff; font-size:0.8rem; margin-bottom:0.8rem; letter-spacing:2px; opacity:0.85; }
+
     #lives { display:flex; justify-content:center; gap:.8rem; margin-bottom:1rem; }
-    .heart { 
-      width:24px; height:24px; background:red; 
+    .heart {
+      width:24px; height:24px; background:red;
       clip-path:polygon(50% 0%,100% 38%,82% 100%,50% 80%,18% 100%,0 38%);
     }
-    
-    .clue-box { 
-      background:#000; border:4px solid #ff33aa; min-height:140px; 
-      display:flex; align-items:center; justify-content:center; 
-      padding:1.5rem; margin-bottom:1.5rem; text-shadow:0 0 8px #ff33aa; 
+
+    .clue-box {
+      background:#000; border:4px solid #ff33aa; min-height:140px;
+      display:flex; align-items:center; justify-content:center;
+      padding:1.5rem; margin-bottom:1.5rem; text-shadow:0 0 8px #ff33aa;
       word-wrap:break-word; border-radius:10px; font-size:1.1rem;
       line-height:1.4; color:#ff33aa;
     }
-    
-    .feedback { 
-      min-height:80px; opacity:0; transition:opacity .5s; display:flex; 
-      align-items:center; justify-content:center; margin-bottom:1.5rem; 
+
+    .feedback {
+      min-height:80px; opacity:0; transition:opacity .5s; display:flex;
+      align-items:center; justify-content:center; margin-bottom:1.5rem;
       text-shadow:0 0 6px; padding:1rem; border-radius:8px;
       font-size:1rem; line-height:1.3;
     }
@@ -114,98 +123,200 @@
     .feedback.special-move { color:#ffaa00; border:3px solid #ffaa00; animation:specialMove 0.8s infinite; }
     .feedback.mom { color:#ffc0cb; border:3px solid #ffc0cb; }
     .feedback.fatality { color:#f00; border:3px solid #f00; font-size:1.8rem; animation:fatality 1s infinite; }
-    
+
     @keyframes rainbow { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
     @keyframes specialMove { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
     @keyframes fatality { 0%,100%{opacity:1; transform:scale(1)} 25%,75%{opacity:0.8; transform:scale(1.05)} }
-    
-    .hint-speak { 
-      display:flex; justify-content:center; gap:1rem; margin-bottom:1.5rem; 
+
+    .hint-speak {
+      display:flex; justify-content:center; gap:1rem; margin-bottom:1.5rem;
     }
-    .hint-speak button { 
-      border-color:#ffaa00; color:#ffaa00; text-shadow:0 0 6px #ffaa00; 
+    .hint-speak button {
+      border-color:#ffaa00; color:#ffaa00; text-shadow:0 0 6px #ffaa00;
     }
     .hint-speak button:hover { background:#ffaa00; color:#000; }
-    
-    input { 
-      width:100%; padding:1.5rem; margin-bottom:1.5rem; 
-      border:4px solid #ffaa00; background:#000; color:#0ff; 
-      text-align:center; font-family:'Press Start 2P',monospace; 
+
+    input {
+      width:100%; padding:1.5rem; margin-bottom:1.5rem;
+      border:4px solid #ffaa00; background:#000; color:#0ff;
+      text-align:center; font-family:'Press Start 2P',monospace;
       text-shadow:0 0 6px; font-size:1.1rem; border-radius:8px;
       transition:border-color 0.3s, box-shadow 0.3s;
     }
-    input:focus { 
-      border-color:#0ff; box-shadow:0 0 15px #0ff; outline:none; 
+    input:focus {
+      border-color:#0ff; box-shadow:0 0 15px #0ff; outline:none;
     }
-    
-    .settings-grid { 
-      display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem; 
+
+    .settings-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem;
     }
-    .setting-item { 
-      background:#000; border:3px solid #ff33aa; border-radius:10px; 
+    .setting-item {
+      background:#000; border:3px solid #ff33aa; border-radius:10px;
       padding:1.2rem; position:relative; text-align:left;
     }
-    .setting-label { 
-      color:#ffaa00; font-size:0.8rem; margin-bottom:0.8rem; 
-      text-shadow:0 0 6px #ffaa00; 
+    .setting-label {
+      color:#ffaa00; font-size:0.8rem; margin-bottom:0.8rem;
+      text-shadow:0 0 6px #ffaa00;
     }
-    .setting-toggle { 
-      background:#111; border:3px solid #0ff; color:#0ff; 
-      padding:0.8rem 1.5rem; cursor:pointer; transition:all 0.3s; 
+    .setting-toggle {
+      background:#111; border:3px solid #0ff; color:#0ff;
+      padding:0.8rem 1.5rem; cursor:pointer; transition:all 0.3s;
       font-size:0.8rem; border-radius:6px; min-height:50px; width:100%;
     }
     .setting-toggle:hover { background:#0ff; color:#000; }
     .setting-toggle.on { background:#0f0; color:#000; border-color:#0f0; }
     .setting-toggle.off { background:#f00; color:#fff; border-color:#f00; }
-    
-    .highscores-title { 
-      font-size:1.4rem; margin-top:2rem; color:#ffaa00; 
-      text-shadow:0 0 8px #ffaa00; 
+
+    .highscores-title {
+      font-size:1.4rem; margin-top:2rem; color:#ffaa00;
+      text-shadow:0 0 8px #ffaa00;
     }
-    .highscores { 
-      display:grid; grid-template-columns:auto 1fr auto; gap:1rem 1.5rem; 
-      justify-content:center; border:3px solid #ffaa00; padding:1.5rem; 
+    .btn-primary {
+      border-color:#ff33aa; color:#ff33aa; text-shadow:0 0 6px #ff33aa;
+      font-size:1.1rem; min-width:220px;
+    }
+    .btn-primary:hover { background:#ff33aa; color:#000; box-shadow:0 0 15px #ff33aa; }
+    .mode-caption {
+      font-size:0.6rem; color:#0ff; opacity:0.65; margin-top:0.5rem; line-height:1.4;
+    }
+    .mode-unavailable { border-color:#555 !important; color:#888 !important; text-shadow:none !important; font-size:0.75rem; }
+    .mode-unavailable:hover { background:#000 !important; color:#888 !important; box-shadow:none !important; transform:none !important; }
+    .highscores {
+      display:grid; grid-template-columns:auto 1fr auto; gap:1rem 1.5rem;
+      justify-content:center; border:3px solid #ffaa00; padding:1.5rem;
       margin-top:1rem; color:#ffaa00; font-size:1rem; border-radius:10px;
     }
     .mario-mom { color:#0f0 !important; text-shadow:0 0 8px #0f0; }
+
+    /* HIGH CONTRAST accessibility mode */
+    body.contrast { color:#fff; }
+    body.contrast #bezel { box-shadow:inset 0 0 40px #fff; }
+    body.contrast #bezel::before { display:none; }
+    body.contrast .panel { border-color:#fff; }
+    body.contrast .clue-box { color:#fff; border-color:#fff; text-shadow:none; }
+    body.contrast h1 { color:#fff; text-shadow:none; }
+    body.contrast .subtitle, body.contrast .stat, body.contrast .setting-label,
+    body.contrast .highscores, body.contrast .highscores-title, body.contrast .progress {
+      color:#ff0; text-shadow:none;
+    }
+    body.contrast button { border-color:#fff; color:#fff; text-shadow:none; }
+    body.contrast input { border-color:#fff; color:#fff; text-shadow:none; }
+    body.contrast .feedback.correct { color:#0f0; }
+    body.contrast .feedback.wrong { color:#f66; }
+    body.contrast .mario-mom { color:#0f0 !important; text-shadow:none; }
+
+    /* ---- Keep gameplay on one screen (no scroll) ---- */
+    #gamePanel { padding:1.25rem 1.5rem; }
+    #gameScreen .stats-bar { margin-bottom:0.6rem; }
+    #gameScreen .progress { margin-bottom:0.6rem; }
+    #gameScreen #lives { margin-bottom:0.75rem; }
+    #gameScreen .clue-box { min-height:96px; padding:1rem; margin-bottom:1rem; font-size:1rem; }
+    #gameScreen .feedback { min-height:52px; padding:0.6rem; margin-bottom:1rem; }
+    #gameScreen .hint-speak { margin-bottom:1rem; }
+    #gameScreen input { padding:1rem; margin-bottom:1rem; font-size:1rem; }
+    #gameScreen .hint-speak button,
+    #gameScreen .btn-row button { min-height:52px; padding:0.9rem 1.1rem; }
+    #gameScreen .btn-row { margin-bottom:0; }
+
+    @media (max-height:760px) {
+      #gamePanel { padding:1rem 1.2rem; }
+      #gameScreen h1 { font-size:1.5rem; }
+      #gameScreen .clue-box { min-height:72px; margin-bottom:0.8rem; font-size:0.95rem; }
+      #gameScreen .feedback { min-height:40px; margin-bottom:0.8rem; }
+      #gameScreen .hint-speak, #gameScreen input { margin-bottom:0.8rem; }
+      #gameScreen #lives { margin-bottom:0.6rem; }
+      .heart { width:20px; height:20px; }
+    }
+    /* Safety net for very short screens: let the game panel scroll rather than clip. */
+    @media (max-height:600px) {
+      #gamePanel { max-height:calc(100dvh - 24px); overflow-y:auto; }
+    }
+
+    /* ---- VS mode: Mortal-Kombat health bars ---- */
+    .vs-bars { display:flex; align-items:flex-end; justify-content:space-between; gap:0.5rem; margin-bottom:0.6rem; }
+    .vs-side { flex:1; }
+    .vs-name { font-size:0.7rem; margin-bottom:0.4rem; color:#0ff; text-shadow:0 0 6px #0ff; }
+    .vs-side:last-child .vs-name { color:#ff33aa; text-shadow:0 0 6px #ff33aa; text-align:right; }
+    .vs-badge { color:#ffaa00; font-size:1rem; text-shadow:0 0 8px #ffaa00; padding-bottom:0.35rem; }
+    .hp-track { display:flex; height:22px; background:#000; border:3px solid #0ff; border-radius:6px; overflow:hidden; }
+    .hp-track.right { justify-content:flex-end; border-color:#ff33aa; }
+    .hp-fill { height:100%; width:100%; transition:width 0.4s ease; }
+    .hp-fill.p1 { background:linear-gradient(90deg,#0f0,#0ff); box-shadow:0 0 10px #0ff; }
+    .hp-fill.p2 { background:linear-gradient(270deg,#ff33aa,#ffaa00); box-shadow:0 0 10px #ff33aa; }
+    .vs-turn { font-size:0.85rem; color:#ffaa00; text-shadow:0 0 8px #ffaa00; margin-bottom:0.8rem; letter-spacing:1px; }
+    .vs-turn.p2turn { color:#ff33aa; text-shadow:0 0 8px #ff33aa; }
+    #vsPanel { padding:1.25rem 1.5rem; }
+    #vsPanel .clue-box { min-height:90px; padding:1rem; margin-bottom:1rem; font-size:1rem; }
+    #vsPanel .feedback { min-height:48px; margin-bottom:1rem; }
+    #vsPanel input { padding:1rem; margin-bottom:1rem; font-size:1rem; }
+    #vsPanel .btn-row { margin-bottom:0; }
+    #vsPanel .btn-row button { min-height:52px; }
+
+    /* ---- Voice-only mode ---- */
+    .voice-status { font-size:0.8rem; color:#0f0; text-shadow:0 0 8px #0f0; margin-bottom:0.8rem; letter-spacing:1px; line-height:1.4; }
+    .voice-status.listening { color:#f00; text-shadow:0 0 10px #f00; animation:comboGlow 0.6s infinite; }
+
+    /* ---- Shareable score card ---- */
+    .score-card { width:100%; max-width:300px; height:auto; border-radius:10px; margin:0 auto 1.2rem; display:block; border:2px solid #0ff; box-shadow:0 0 15px rgba(0,255,255,0.4); }
+
+    /* ---- Fit new screens on shorter devices ---- */
+    @media (max-height:760px) {
+      .insert-coin { margin-bottom:1rem; }
+      .highscores-title { margin-top:1.2rem; font-size:1.1rem; }
+      .highscores { padding:1rem; margin-top:0.7rem; }
+      .menu-stack { margin:1rem 0; gap:0.7rem; }
+      .score-card { max-width:210px; margin-bottom:0.8rem; }
+      #gameOverScreen h1 { font-size:1.5rem; margin-bottom:0.5rem; }
+      #gameOverScreen .subtitle { margin-bottom:0.6rem; }
+    }
+    @media (max-height:600px) {
+      .score-card { max-width:170px; }
+    }
   </style>
 </head>
 <body>
   <div id="bezel"></div>
-  <div class="insertCoin" id="insertCoin">INSERT COIN</div>
-  
+
   <div class="loading-screen" id="loadingScreen">
     <div class="cartridge"></div>
     <div class="loading-text">NOW LOADING...</div>
   </div>
-  
+
   <div class="container">
     <div id="startScreen" class="screen active">
       <div class="panel">
+        <div class="insert-coin">INSERT COIN</div>
         <h1>Plot Twisted</h1>
         <div class="subtitle">Gaming Edition</div>
-        <div class="menu-row">
-          <button id="newGame">NEW GAME</button>
-          <button id="howTo">HOW TO PLAY</button>
+        <div class="menu-stack">
+          <button id="newGame" class="btn-primary">ARCADE MODE</button>
+          <button id="moreModes">MORE MODES</button>
           <button id="settings">SETTINGS</button>
         </div>
         <div class="highscores-title">HIGH SCORES</div>
-        <div class="highscores">
-          <div class="rank">1.</div><div class="name mario-mom">MarioMom</div><div class="score mario-mom">54</div>
-          <div class="rank">2.</div><div class="name">Linkster</div><div class="score">42</div>
-          <div class="rank">3.</div><div class="name">MasterCheff</div><div class="score">37</div>
-        </div>
+        <div class="highscores" id="highscores"></div>
       </div>
     </div>
-    
+
+    <div id="moreModesScreen" class="screen">
+      <div class="panel">
+        <h1>MORE MODES</h1>
+        <div class="menu-row"><button id="vsGame">⚔️ VERSUS &mdash; 2P</button></div>
+        <div class="mode-caption">Hot-seat duel. Drain their health bar.</div>
+        <div class="menu-row" style="margin-top:1.2rem;"><button id="voiceGame">🎤 VOICE MODE</button></div>
+        <div class="mode-caption" id="voiceCaption">Hands-free. Shout the answer.</div>
+        <div class="menu-row" style="margin-top:1.5rem;"><button id="modesBack">BACK</button></div>
+      </div>
+    </div>
+
     <div id="howToScreen" class="screen">
       <div class="panel">
         <h1>HOW TO PLAY</h1>
-        <p>Guess the game from the twisted clue.<br/>5 lives, 3 hints.<br/>Build combos for bonus points!<br/>Try special moves like "hadouken"!</p>
+        <p>Guess the game from the twisted clue.<br/>5 clues, 5 lives, 3 hints.<br/>Build combos for bonus points!<br/>Style points: "street fighter hadouken".<br/><br/>2P VS: trade blows, drain their health.<br/>VOICE: shout answers, hands-free.<br/>MOM MODE (settings): kind, no losing.</p>
         <div class="menu-row"><button id="backToMenu">BACK</button></div>
       </div>
     </div>
-    
+
     <div id="settingsScreen" class="screen">
       <div class="panel">
         <h1>GAME CONFIG</h1>
@@ -243,10 +354,13 @@
             <button class="setting-toggle on" id="toggleFatality">ENABLED</button>
           </div>
         </div>
-        <div class="menu-row"><button id="saveSettings">SAVE CONFIG</button></div>
+        <div class="menu-row">
+          <button id="howTo">HOW TO PLAY</button>
+          <button id="saveSettings">SAVE &amp; BACK</button>
+        </div>
       </div>
     </div>
-    
+
     <div id="gameScreen" class="screen">
       <div class="panel" id="gamePanel">
         <div class="stats-bar">
@@ -254,6 +368,8 @@
           <div class="combo" id="comboDisplay" style="display:none;">COMBO!</div>
           <div class="stat">Hints: <span id="hintsDisplay">3</span></div>
         </div>
+        <div class="progress" id="progress">ROUND 1 / 5</div>
+        <div id="voiceStatus" class="voice-status" style="display:none;">🎤 VOICE MODE</div>
         <div id="lives"></div>
         <div id="finishHim" class="finish-him" style="display:none;">FINISH HIM!</div>
         <div class="clue-box" id="clue">Loading clue...</div>
@@ -265,20 +381,69 @@
         <input id="answer" placeholder="Type your answer..." />
         <div class="btn-row">
           <button id="submitBtn">SUBMIT</button>
+          <button id="repeatBtn" style="display:none;">🔁 LISTEN AGAIN</button>
           <button id="skipBtn">SKIP</button>
           <button id="endBtn">END GAME</button>
         </div>
       </div>
     </div>
-    
+
     <div id="gameOverScreen" class="screen">
       <div class="panel">
         <h1>GAME OVER</h1>
-        <div id="finalScore" class="subtitle">Score: 0/5</div>
+        <div id="finalScore" class="subtitle">Score: 0</div>
         <div id="finalStats" class="subtitle"></div>
+        <div id="scoreEntry" style="display:none;">
+          <div class="subtitle" id="scoreEntryPrompt" style="color:#0f0;text-shadow:0 0 8px #0f0;">NEW HIGH SCORE!</div>
+          <div class="subtitle">ENTER INITIALS</div>
+          <input id="initials" maxlength="3" placeholder="AAA" style="max-width:220px;text-transform:uppercase;" />
+          <div class="menu-row"><button id="saveScoreBtn">SAVE SCORE</button></div>
+        </div>
+        <canvas id="cardCanvas" class="score-card" width="1080" height="1350"></canvas>
+        <div class="mode-caption" id="cardHint" style="margin-bottom:1rem;">Tip: long-press or right-click the card to save it too.</div>
+        <div class="menu-row">
+          <button id="shareCardBtn">📸 SHARE CARD</button>
+        </div>
         <div class="menu-row">
           <button id="playAgain">PLAY AGAIN</button>
           <button id="mainMenu">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="vsGameScreen" class="screen">
+      <div class="panel" id="vsPanel">
+        <div class="vs-bars">
+          <div class="vs-side">
+            <div class="vs-name" id="p1Name">PLAYER 1</div>
+            <div class="hp-track"><div class="hp-fill p1" id="p1Hp"></div></div>
+          </div>
+          <div class="vs-badge">VS</div>
+          <div class="vs-side">
+            <div class="vs-name" id="p2Name">PLAYER 2</div>
+            <div class="hp-track right"><div class="hp-fill p2" id="p2Hp"></div></div>
+          </div>
+        </div>
+        <div class="vs-turn" id="vsTurn">PLAYER 1'S TURN</div>
+        <div id="vsFinishHim" class="finish-him" style="display:none;">FINISH HIM!</div>
+        <div class="clue-box" id="vsClue">Loading clue...</div>
+        <div class="feedback" id="vsFeedback"></div>
+        <input id="vsAnswer" placeholder="Type your answer..." />
+        <div class="btn-row">
+          <button id="vsSubmitBtn">SUBMIT</button>
+          <button id="vsSkipBtn">SKIP</button>
+          <button id="vsEndBtn">END</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="vsOverScreen" class="screen">
+      <div class="panel fatality">
+        <div class="finish-him" id="vsWinner" style="margin-bottom:1rem;">PLAYER 1 WINS!</div>
+        <div class="subtitle" id="vsResult"></div>
+        <div class="menu-row">
+          <button id="vsRematch">REMATCH</button>
+          <button id="vsMenu">MAIN MENU</button>
         </div>
       </div>
     </div>
@@ -286,22 +451,50 @@
 
   <script>
     try {
-      // Game state
+      // ---------- Config ----------
+      const ROUND_SIZE = 5;
+      const SETTINGS_KEY = 'pt_settings_v1';
+      const SCORES_KEY = 'pt_scores_v1';
+
+      // ---------- Game state ----------
       let settings = {
         hints: true, sound: true, contrast: false, voice: false,
         easter: true, fuzzy: true, mom: false, fatality: true
       };
-      
+
       let current = 0, lives = 5, hintsUsed = 0, score = 0, combo = 0, maxCombo = 0;
-      let isProcessing = false, isFinalRound = false;
+      let isProcessing = false, isFinalRound = false, scoreSaved = false;
 
-      let questions = [];
+      let allQuestions = [];   // full loaded deck
+      let questions = [];      // the shuffled 12 for this run
 
-      // Fallback clues used only if clues.json fails to load (e.g. opened via file://).
+      // Mode + VS + voice state
+      let voiceMode = false;
+      let activeRecognition = null;
+      let vsMode = false;
+      let players = [{ name: 'PLAYER 1', hp: 100, combo: 0 }, { name: 'PLAYER 2', hp: 100, combo: 0 }];
+      let vsTurn = 0, vsQueue = [], vsQIndex = 0, vsCurrentQ = null;
+
+      // ============================================================
+      // ADD FALLBACK CLUES HERE
+      // These play ONLY if clues.json fails to load (e.g. opened via
+      // file:// or offline). Same shape as clues.json: clue / answer /
+      // platform. Keep answers lowercase. Add as many as you like — a
+      // round pulls up to ROUND_SIZE (5) at random.
+      // ============================================================
       const fallbackQuestions = [
         {clue: 'Blue hedgehog runs fast.', answer: 'sonic', platform: 'Genesis'},
         {clue: 'Block world with creepers.', answer: 'minecraft', platform: 'PC'},
-        {clue: 'Must save princess in Mushroom Kingdom.', answer: 'mario', platform: 'NES'}
+        {clue: 'Plumber must save princess in Mushroom Kingdom.', answer: 'super mario bros', platform: 'NES'},
+        {clue: 'Yellow circle eats dots, flees ghosts.', answer: 'pac-man', platform: 'Arcade'},
+        {clue: 'Falling tetromino blocks beg to be cleared.', answer: 'tetris', platform: 'Game Boy'},
+        {clue: 'Elf boy fights pig man to save Hyrule.', answer: 'the legend of zelda', platform: 'NES'},
+        {clue: 'Battle royale where you build walls mid-gunfight.', answer: 'fortnite', platform: 'Multi'},
+        {clue: 'Crime spree simulator in a sunny fake California.', answer: 'grand theft auto', platform: 'PC'},
+        {clue: 'Farming meets found family in a pixel valley.', answer: 'stardew valley', platform: 'PC'},
+        {clue: 'Space bounty hunter in a power suit, alone on a hostile planet.', answer: 'metroid', platform: 'NES'},
+        {clue: 'Gorilla hurls barrels at a mustached hero.', answer: 'donkey kong', platform: 'Arcade'},
+        {clue: 'You are the impostor. Probably.', answer: 'among us', platform: 'Mobile'}
       ];
 
       const newGameBtn = document.getElementById('newGame');
@@ -312,35 +505,32 @@
         try {
           const res = await fetch('clues.json');
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          questions = await res.json();
+          allQuestions = await res.json();
         } catch (error) {
           console.error('Failed to load clues.json, using fallback clues:', error);
-          questions = fallbackQuestions;
+          allQuestions = fallbackQuestions;
         } finally {
           newGameBtn.disabled = false;
-          newGameBtn.textContent = 'NEW GAME';
+          newGameBtn.textContent = '1P GAME';
         }
       }
 
-      loadClues();
-
       const comboMessages = ['2 HIT COMBO!', '3 HIT COMBO!', 'EXCELLENT!', 'OUTSTANDING!', 'PERFECT!'];
-      
+
       const easterEggs = {
-        'gotta go fast': '💨 GOTTA GO FAST! Bonus points!',
+        'gotta go fast': '💨 GOTTA GO FAST!',
         'mario mom': '👩‍👧‍👦 MarioMom sends her love!',
         'mariomom': '👩‍👧‍👦 MarioMom sends her love!'
       };
-      
+
       const specialMoves = {
         'hadouken': '🔥 HADOUKEN! Ryu would be proud!',
         'fatality': '💀 FATALITY! Flawless victory!',
         'get over here': '🪝 GET OVER HERE! Scorpion style!'
       };
-      
-      // Elements
-      const screens = ['startScreen', 'howToScreen', 'settingsScreen', 'gameScreen', 'gameOverScreen'];
-      const insertEl = document.getElementById('insertCoin');
+
+      // ---------- Elements ----------
+      const screens = ['startScreen', 'moreModesScreen', 'howToScreen', 'settingsScreen', 'gameScreen', 'gameOverScreen', 'vsGameScreen', 'vsOverScreen'];
       const loadingScreen = document.getElementById('loadingScreen');
       const livesEl = document.getElementById('lives');
       const clueEl = document.getElementById('clue');
@@ -349,155 +539,764 @@
       const scoreDisplay = document.getElementById('scoreDisplay');
       const comboDisplay = document.getElementById('comboDisplay');
       const hintsDisplay = document.getElementById('hintsDisplay');
+      const progressEl = document.getElementById('progress');
       const finishHimEl = document.getElementById('finishHim');
       const gamePanel = document.getElementById('gamePanel');
       const finalScore = document.getElementById('finalScore');
       const finalStats = document.getElementById('finalStats');
-      
+      const hintBtn = document.getElementById('hintBtn');
+
+      // ---------- Persistence ----------
+      function loadSettings() {
+        try {
+          const s = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+          if (s && typeof s === 'object') Object.assign(settings, s);
+        } catch (e) { /* ignore */ }
+      }
+      function persistSettings() {
+        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {}
+      }
+
+      const DEFAULT_SCORES = [
+        {name: 'MARIOMOM', score: 54},
+        {name: 'LINKSTER', score: 42},
+        {name: 'MASTERCHEFF', score: 37}
+      ];
+      function loadScores() {
+        try {
+          const s = JSON.parse(localStorage.getItem(SCORES_KEY));
+          if (Array.isArray(s) && s.length) return s;
+        } catch (e) {}
+        return DEFAULT_SCORES.slice();
+      }
+      function persistScores(list) {
+        try { localStorage.setItem(SCORES_KEY, JSON.stringify(list)); } catch (e) {}
+      }
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, c => (
+          {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+        ));
+      }
+      function renderScores() {
+        const scores = loadScores().slice().sort((a, b) => b.score - a.score).slice(0, 5);
+        const el = document.getElementById('highscores');
+        el.innerHTML = '';
+        scores.forEach((s, i) => {
+          const mm = String(s.name).toUpperCase() === 'MARIOMOM' ? ' mario-mom' : '';
+          el.insertAdjacentHTML('beforeend',
+            `<div class="rank">${i + 1}.</div>` +
+            `<div class="name${mm}">${escapeHtml(s.name)}</div>` +
+            `<div class="score${mm}">${s.score}</div>`);
+        });
+      }
+      function scoreQualifies(pts) {
+        if (pts <= 0) return false;
+        const scores = loadScores().slice().sort((a, b) => b.score - a.score);
+        return scores.length < 5 || pts > scores[scores.length - 1].score;
+      }
+      function commitScore(name, pts) {
+        const list = loadScores();
+        list.push({ name: (name || 'AAA').toUpperCase().slice(0, 3) || 'AAA', score: pts });
+        list.sort((a, b) => b.score - a.score);
+        persistScores(list.slice(0, 10));
+        renderScores();
+      }
+
+      // ---------- Device capability detection ----------
+      // iOS runs every browser on WebKit, where SpeechRecognition is absent or
+      // too unreliable to ship. Treat iOS as unsupported and relabel the mode.
+      const SR_CTOR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const VOICE_SUPPORTED = !!SR_CTOR && !IS_IOS;
+
+      // ---------- Audio (minimal WebAudio blips) ----------
+      let audioCtx = null;
+      let audioUnlocked = false;
+      function ensureAudioCtx() {
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return null;
+          try { audioCtx = new AC(); } catch (e) { return null; }
+        }
+        return audioCtx;
+      }
+      // iOS keeps the context suspended until a gesture calls resume() AND a
+      // buffer plays inside that gesture. Bind this to the first interactions.
+      function unlockAudio() {
+        const ctx = ensureAudioCtx();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        if (!audioUnlocked) {
+          try {
+            const buf = ctx.createBuffer(1, 1, 22050);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(ctx.destination);
+            src.start(0);
+            audioUnlocked = true;
+          } catch (e) { /* ignore */ }
+        }
+      }
+      ['pointerdown', 'touchend', 'keydown'].forEach(evt =>
+        document.addEventListener(evt, unlockAudio, { passive: true }));
+
+      function playTone(kind) {
+        if (!settings.sound) return;
+        const ctx = ensureAudioCtx();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        try {
+          const now = ctx.currentTime;
+          const presets = {
+            correct: { type: 'square',   freqs: [523, 659, 784], dur: 0.26, vol: 0.07 },
+            combo:   { type: 'square',   freqs: [659, 880, 1047], dur: 0.30, vol: 0.08 },
+            wrong:   { type: 'sawtooth', freqs: [196, 130],       dur: 0.32, vol: 0.07 },
+            hint:    { type: 'triangle', freqs: [440],            dur: 0.12, vol: 0.06 },
+            coin:    { type: 'square',   freqs: [988, 1319],      dur: 0.18, vol: 0.06 }
+          };
+          const p = presets[kind] || presets.hint;
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = p.type;
+          o.connect(g); g.connect(ctx.destination);
+          g.gain.setValueAtTime(p.vol, now);
+          const step = p.dur / p.freqs.length;
+          p.freqs.forEach((f, i) => o.frequency.setValueAtTime(f, now + i * step));
+          g.gain.exponentialRampToValueAtTime(0.0001, now + p.dur);
+          o.start(now); o.stop(now + p.dur);
+        } catch (e) { /* audio not available */ }
+      }
+
+      // ---------- Screens ----------
       function show(id) {
         screens.forEach(s => document.getElementById(s).classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        insertEl.style.display = (id === 'startScreen' || id === 'gameOverScreen') ? 'block' : 'none';
       }
-      
       function showLoading() {
         loadingScreen.style.display = 'flex';
         setTimeout(() => { loadingScreen.style.display = 'none'; }, 2000);
       }
-      
+      function applyContrast() {
+        document.body.classList.toggle('contrast', !!settings.contrast);
+      }
+
       function renderLives() {
         livesEl.innerHTML = '';
+        if (settings.mom) {
+          const badge = document.createElement('div');
+          badge.className = 'voice-status';
+          badge.style.color = '#ffc0cb';
+          badge.style.textShadow = '0 0 8px #ffc0cb';
+          badge.style.margin = '0';
+          badge.textContent = '💗 MOM MODE — no game overs';
+          livesEl.appendChild(badge);
+          return;
+        }
         for (let i = 0; i < lives; i++) {
           const h = document.createElement('div');
           h.className = 'heart';
           livesEl.appendChild(h);
         }
       }
-      
+
       function updateStats() {
         scoreDisplay.textContent = score;
-        hintsDisplay.textContent = Math.max(0, 3 - hintsUsed);
+        hintsDisplay.textContent = !settings.hints ? 'OFF' : (settings.mom ? '\u221E' : Math.max(0, 3 - hintsUsed));
         if (combo >= 2) {
           comboDisplay.style.display = 'block';
           comboDisplay.textContent = comboMessages[Math.min(combo - 2, comboMessages.length - 1)];
         } else {
           comboDisplay.style.display = 'none';
         }
+        hintBtn.disabled = !settings.hints || (!settings.mom && hintsUsed >= 3);
       }
-      
+
+      // ---------- Matching ----------
+      function stripJunk(str) {
+        return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+      }
+      // Canonical form: drop articles/filler words and punctuation so
+      // "the legend of zelda" == "legend zelda", but a lone "the" never matches.
+      function canonical(str) {
+        return str.toLowerCase()
+          .replace(/&/g, ' and ')
+          .replace(/\b(the|a|an|of|and)\b/g, ' ')
+          .replace(/[^a-z0-9]/g, '');
+      }
+      function levenshtein(a, b) {
+        const m = a.length, n = b.length;
+        if (!m) return n;
+        if (!n) return m;
+        let prev = Array.from({ length: n + 1 }, (_, i) => i);
+        let curr = new Array(n + 1);
+        for (let i = 1; i <= m; i++) {
+          curr[0] = i;
+          for (let j = 1; j <= n; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+          }
+          const tmp = prev; prev = curr; curr = tmp;
+        }
+        return prev[n];
+      }
       function fuzzyMatch(input, target) {
-        if (!settings.fuzzy) return input === target;
-        const normalize = str => str.toLowerCase().replace(/[^a-z0-9]/g, '');
-        return normalize(input) === normalize(target) || normalize(input) === normalize(target.split(' ')[0]);
+        const ni = stripJunk(input);
+        const nt = stripJunk(target);
+        if (!ni) return false;
+        if (ni === nt) return true;                 // exact, punctuation-insensitive
+        if (!settings.fuzzy) return false;          // strict mode stops here
+
+        const ci = canonical(input), ct = canonical(target);
+        if (ci && ci === ct) return true;           // article-insensitive
+
+        // Typo tolerance scales with answer length (no more "the" wins).
+        const tol = nt.length <= 5 ? 1 : (nt.length <= 9 ? 2 : 3);
+        if (levenshtein(ni, nt) <= tol) return true;
+        if (ci && ct && levenshtein(ci, ct) <= tol) return true;
+        return false;
       }
-      
+      function titleCase(s) {
+        return String(s).replace(/\b\w/g, c => c.toUpperCase());
+      }
+
       function checkSpecialMove(input) {
-        const normalInput = input.toLowerCase();
-        return Object.keys(specialMoves).find(move => normalInput.includes(move));
+        const s = input.toLowerCase();
+        return Object.keys(specialMoves).find(move => s.includes(move));
       }
-      
       function checkEasterEgg(input) {
         if (!settings.easter) return null;
-        const normalInput = input.toLowerCase();
-        return Object.keys(easterEggs).find(egg => normalInput.includes(egg));
+        const s = input.toLowerCase();
+        return Object.keys(easterEggs).find(egg => s.includes(egg));
       }
-      
+
+      // ---------- Round flow ----------
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a;
+      }
+
       function loadQuestion() {
-        if (current >= questions.length || lives <= 0) return endGame();
-        
+        // Mom mode removes game-overs, so only the round length ends the game.
+        if (current >= questions.length || (!settings.mom && lives <= 0)) return endGame();
+
         isFinalRound = (current === questions.length - 1) && settings.fatality;
         finishHimEl.style.display = isFinalRound ? 'block' : 'none';
         gamePanel.className = isFinalRound ? 'panel fatality' : 'panel';
-        
+
         const q = questions[current];
         clueEl.textContent = q.clue;
+        progressEl.textContent = `ROUND ${Math.min(current + 1, questions.length)} / ${questions.length}`;
         feedbackEl.className = 'feedback';
         feedbackEl.textContent = '';
         answerInput.value = '';
-        answerInput.focus();
         isProcessing = false;
         updateStats();
+        if (voiceMode) {
+          startVoiceListen();
+        } else {
+          answerInput.focus();
+        }
       }
-      
+
       function submitAnswer() {
         if (isProcessing) return;
+        const raw = answerInput.value.trim();
+        if (!raw) return;
         isProcessing = true;
-        
-        const ans = answerInput.value.trim().toLowerCase();
-        if (!ans) { isProcessing = false; return; }
-        
+
         const q = questions[current];
-        const specialMove = checkSpecialMove(ans);
-        const easterEgg = checkEasterEgg(ans);
-        const isCorrect = fuzzyMatch(ans, q.answer);
-        
-        if (specialMove) {
-          score += 10; combo++;
-          feedbackEl.className = 'feedback show special-move';
-          feedbackEl.textContent = specialMoves[specialMove];
-        } else if (easterEgg) {
-          score += 5; combo++;
-          feedbackEl.className = 'feedback show easter';
-          feedbackEl.textContent = easterEggs[easterEgg];
-        } else if (isCorrect) {
+        const specialMove = checkSpecialMove(raw);
+        const easterEgg = checkEasterEgg(raw);
+
+        // Strip flavor phrases so the real answer underneath can be judged.
+        let core = raw.toLowerCase();
+        Object.keys(specialMoves).forEach(m => { core = core.split(m).join(' '); });
+        if (settings.easter) Object.keys(easterEggs).forEach(e => { core = core.split(e).join(' '); });
+        core = core.trim();
+
+        const attempted = core.length > 0;
+        const isCorrect = attempted && fuzzyMatch(core, q.answer);
+        const answerName = titleCase(q.answer);
+
+        if (isCorrect) {
           const bonus = combo >= 2 ? combo : 0;
-          score += 1 + bonus; combo++;
+          const style = (specialMove || easterEgg) ? 2 : 0;
+          score += 1 + bonus + style;
+          combo++;
           maxCombo = Math.max(maxCombo, combo);
-          let message = `Correct! It was ${q.answer}!`;
-          if (bonus > 0) message += ` +${bonus} combo bonus!`;
-          if (isFinalRound) message = 'FATALITY! You win!';
-          feedbackEl.className = isFinalRound ? 'feedback show fatality' : 'feedback show correct';
-          feedbackEl.textContent = message;
+
+          if (isFinalRound) {
+            feedbackEl.className = 'feedback show fatality';
+            feedbackEl.textContent = 'FATALITY! You win!';
+          } else if (specialMove) {
+            feedbackEl.className = 'feedback show special-move';
+            feedbackEl.textContent = `${specialMoves[specialMove]} ${answerName}! +${1 + bonus + style} (style!)`;
+          } else if (easterEgg) {
+            feedbackEl.className = 'feedback show easter';
+            feedbackEl.textContent = `${easterEggs[easterEgg]} Correct \u2014 ${answerName}! +${1 + bonus + style}`;
+          } else {
+            let message = `Correct! It was ${answerName}!`;
+            if (bonus > 0) message += ` +${bonus} combo bonus!`;
+            feedbackEl.className = 'feedback show correct';
+            feedbackEl.textContent = message;
+          }
+          if (settings.mom && !isFinalRound) {
+            feedbackEl.className = 'feedback show mom';
+            feedbackEl.textContent = `💗 MarioMom is SO proud! ${answerName}! +${1 + bonus + style}`;
+          }
+          playTone(isFinalRound || combo > 2 ? 'combo' : 'correct');
+          current++;
+          setTimeout(loadQuestion, isFinalRound ? 3000 : 2000);
+        } else if (!attempted && (specialMove || easterEgg)) {
+          // Bare move/egg with no real guess: flavor, but no points and no penalty.
+          const flavor = specialMove ? specialMoves[specialMove] : easterEggs[easterEgg];
+          feedbackEl.className = `feedback show ${specialMove ? 'special-move' : 'easter'}`;
+          feedbackEl.textContent = `${flavor} ...but you still need the answer!`;
+          playTone('hint');
+          answerInput.value = '';
+          isProcessing = false;
+          answerInput.focus();
+          return;
         } else {
-          lives--; combo = 0; renderLives();
-          feedbackEl.className = 'feedback show wrong';
-          feedbackEl.textContent = `Wrong! It was ${q.answer}!`;
+          combo = 0;
+          if (settings.mom) {
+            renderLives();
+            feedbackEl.className = 'feedback show mom';
+            feedbackEl.textContent = `Aw, so close, sweetie \u2014 it was ${answerName}. On to the next! 💗`;
+          } else {
+            lives--; renderLives();
+            const flourish = specialMove ? `${specialMoves[specialMove]} ...but ` :
+                             (easterEgg ? `${easterEggs[easterEgg]} ...but ` : '');
+            feedbackEl.className = 'feedback show wrong';
+            feedbackEl.textContent = `${flourish}Wrong! It was ${answerName}!`;
+          }
+          playTone('wrong');
+          current++;
+          setTimeout(loadQuestion, 2500);
         }
-        
-        current++;
-        setTimeout(loadQuestion, isFinalRound ? 3000 : 2500);
+        updateStats();
       }
-      
+
       function skipQuestion() {
         if (isProcessing) return;
-        isProcessing = true; lives--; combo = 0; renderLives();
+        isProcessing = true; combo = 0;
+        if (!settings.mom) lives--;
+        renderLives();
         const q = questions[current];
-        feedbackEl.className = 'feedback show wrong';
-        feedbackEl.textContent = `Skipped! It was ${q.answer}!`;
+        feedbackEl.className = settings.mom ? 'feedback show mom' : 'feedback show wrong';
+        feedbackEl.textContent = `Skipped! It was ${titleCase(q.answer)}!`;
+        playTone('wrong');
         current++;
+        updateStats();
         setTimeout(loadQuestion, 2000);
       }
-      
+
       function giveHint() {
-        if (hintsUsed >= 3) {
+        if (!settings.hints) return;
+        const unlimited = settings.mom;
+        if (!unlimited && hintsUsed >= 3) {
           feedbackEl.className = 'feedback show wrong';
           feedbackEl.textContent = 'No more hints available!';
           return;
         }
         const q = questions[current];
-        const hints = [`First letter: ${q.answer[0].toUpperCase()}`, `Letters: ${q.answer.length}`, `Platform: ${q.platform}`];
+        const hints = [
+          `First letter: ${q.answer[0].toUpperCase()}`,
+          `Letters: ${q.answer.replace(/[^a-z0-9]/gi, '').length}`,
+          `Platform: ${q.platform}`
+        ];
+        const idx = Math.min(hintsUsed, hints.length - 1);
         feedbackEl.className = 'feedback show';
-        feedbackEl.textContent = hints[hintsUsed++];
+        feedbackEl.textContent = hints[idx];
+        hintsUsed++;
+        playTone('hint');
         updateStats();
       }
-      
+
       function endGame() {
+        stopVoice();
         finishHimEl.style.display = 'none';
         gamePanel.className = 'panel';
         finalScore.textContent = `Final Score: ${score}`;
-        finalStats.textContent = `Max Combo: ${maxCombo} | Questions: ${current}`;
+        finalStats.textContent = `Max Combo: ${maxCombo} | Answered: ${current}/${questions.length}`;
+
+        const entry = document.getElementById('scoreEntry');
+        if (scoreQualifies(score)) {
+          entry.style.display = 'block';
+          const inp = document.getElementById('initials');
+          inp.value = ''; inp.disabled = false;
+          document.getElementById('saveScoreBtn').disabled = false;
+          document.getElementById('scoreEntryPrompt').textContent = 'NEW HIGH SCORE!';
+          scoreSaved = false;
+          setTimeout(() => inp.focus(), 50);
+        } else {
+          entry.style.display = 'none';
+        }
+        buildScoreCard('');
         show('gameOverScreen');
       }
-      
+
+      function saveHighScore() {
+        if (scoreSaved) return;
+        const initials = (document.getElementById('initials').value.trim() || 'AAA')
+          .toUpperCase().slice(0, 3);
+        commitScore(initials, score);
+        scoreSaved = true;
+        buildScoreCard(initials);
+        document.getElementById('scoreEntryPrompt').textContent = 'SCORE SAVED! 💾';
+        document.getElementById('initials').disabled = true;
+        document.getElementById('saveScoreBtn').disabled = true;
+      }
+
+      function beginRound(useVoice) {
+        vsMode = false;
+        voiceMode = !!useVoice;
+        const pool = (allQuestions && allQuestions.length) ? allQuestions : fallbackQuestions;
+        questions = shuffle(pool).slice(0, Math.min(ROUND_SIZE, pool.length));
+        current = 0; lives = 5; hintsUsed = 0; score = 0; combo = 0; maxCombo = 0;
+        isFinalRound = false; isProcessing = false; scoreSaved = false;
+
+        // Toggle voice-mode UI on the shared game screen.
+        document.getElementById('voiceStatus').style.display = voiceMode ? 'block' : 'none';
+        document.getElementById('repeatBtn').style.display = voiceMode ? 'inline-block' : 'none';
+        document.getElementById('speakBtn').style.display = (!voiceMode && VOICE_SUPPORTED) ? 'inline-block' : 'none';
+        answerInput.readOnly = voiceMode;
+        answerInput.placeholder = voiceMode ? 'Shout the answer\u2026' : 'Type your answer...';
+
+        renderLives(); show('gameScreen'); loadQuestion();
+      }
+
       function startNewGame() {
+        stopVoice();
         showLoading();
+        playTone('coin');
+        setTimeout(() => beginRound(false), 2000);
+      }
+
+      function startVoiceGame() {
+        if (!VOICE_SUPPORTED) {
+          const why = IS_IOS
+            ? 'Voice Mode needs speech recognition, which iPhone/iPad browsers don\u2019t support. Play it on Android or a desktop browser (Chrome/Edge).'
+            : 'Voice recognition isn\u2019t available in this browser. Try Chrome or Edge on desktop or Android.';
+          alert(why);
+          return;
+        }
+        stopVoice();
+        showLoading();
+        playTone('coin');
+        setTimeout(() => beginRound(true), 2000);
+      }
+
+      // ---------- Voice-only engine ----------
+      function setVoiceStatus(text, listening) {
+        const vs = document.getElementById('voiceStatus');
+        vs.textContent = text;
+        vs.classList.toggle('listening', !!listening);
+      }
+
+      function stopVoice() {
+        voiceMode = false;
+        if (activeRecognition) {
+          try { activeRecognition.onend = null; activeRecognition.abort(); } catch (e) {}
+          activeRecognition = null;
+        }
+        const vs = document.getElementById('voiceStatus');
+        if (vs) vs.classList.remove('listening');
+      }
+
+      function startVoiceListen() {
+        if (!voiceMode) return;
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) { voiceMode = false; return; }
+        try { if (activeRecognition) activeRecognition.abort(); } catch (e) {}
+        const rec = new SR();
+        activeRecognition = rec;
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = 'en-US';
+        setVoiceStatus('🔴 LISTENING \u2014 shout the game!', true);
+
+        rec.onresult = (event) => {
+          const heard = event.results[0][0].transcript;
+          answerInput.value = heard;
+          setVoiceStatus(`Heard: "${heard}"`, false);
+          activeRecognition = null;
+          submitAnswer();
+        };
+        rec.onerror = (event) => {
+          if (event.error === 'no-speech' || event.error === 'aborted') return;
+          setVoiceStatus(`Mic: ${event.error} \u2014 tap LISTEN AGAIN`, false);
+        };
+        rec.onend = () => {
+          if (voiceMode && activeRecognition === rec && !isProcessing) {
+            setVoiceStatus('🎤 Didn\u2019t catch that \u2014 tap LISTEN AGAIN', false);
+          }
+          if (activeRecognition === rec) activeRecognition = null;
+        };
+        try { rec.start(); } catch (e) { setVoiceStatus('Mic busy \u2014 tap LISTEN AGAIN', false); }
+      }
+
+      // ---------- 2P VS engine ----------
+      function drawHp() {
+        document.getElementById('p1Hp').style.width = Math.max(0, players[0].hp) + '%';
+        document.getElementById('p2Hp').style.width = Math.max(0, players[1].hp) + '%';
+        document.getElementById('p1Name').textContent = players[0].name;
+        document.getElementById('p2Name').textContent = players[1].name;
+      }
+
+      function nextVsQuestion() {
+        if (vsQIndex >= vsQueue.length) {
+          const pool = (allQuestions && allQuestions.length) ? allQuestions : fallbackQuestions;
+          vsQueue = shuffle(pool);
+          vsQIndex = 0;
+        }
+        return vsQueue[vsQIndex++];
+      }
+
+      function loadVsQuestion() {
+        const turnEl = document.getElementById('vsTurn');
+        turnEl.textContent = `${players[vsTurn].name}'S TURN`;
+        turnEl.classList.toggle('p2turn', vsTurn === 1);
+        document.getElementById('vsFinishHim').style.display = 'none';
+        document.getElementById('vsPanel').className = 'panel';
+        vsCurrentQ = nextVsQuestion();
+        document.getElementById('vsClue').textContent = vsCurrentQ.clue;
+        const fb = document.getElementById('vsFeedback');
+        fb.className = 'feedback'; fb.textContent = '';
+        const inp = document.getElementById('vsAnswer');
+        inp.value = ''; inp.focus();
+        isProcessing = false;
+        drawHp();
+      }
+
+      function vsSubmit() {
+        if (isProcessing) return;
+        const inp = document.getElementById('vsAnswer');
+        const raw = inp.value.trim();
+        if (!raw) return;
+        isProcessing = true;
+
+        const q = vsCurrentQ;
+        const fb = document.getElementById('vsFeedback');
+        const me = players[vsTurn], foe = players[1 - vsTurn];
+        const specialMove = checkSpecialMove(raw);
+        const easterEgg = checkEasterEgg(raw);
+        let core = raw.toLowerCase();
+        Object.keys(specialMoves).forEach(m => { core = core.split(m).join(' '); });
+        if (settings.easter) Object.keys(easterEggs).forEach(e => { core = core.split(e).join(' '); });
+        core = core.trim();
+        const isCorrect = core.length > 0 && fuzzyMatch(core, q.answer);
+        const answerName = titleCase(q.answer);
+
+        if (isCorrect) {
+          me.combo++;
+          let dmg = 20 + (me.combo >= 2 ? (me.combo - 1) * 5 : 0);
+          if (specialMove) dmg += 10;
+          foe.hp = Math.max(0, foe.hp - dmg);
+          const flourish = specialMove ? `${specialMoves[specialMove]} ` : (easterEgg ? `${easterEggs[easterEgg]} ` : '');
+          fb.className = 'feedback show correct';
+          fb.textContent = `${flourish}HIT! ${answerName} \u2014 ${dmg} dmg to ${foe.name}!`;
+          playTone('combo');
+        } else {
+          me.combo = 0;
+          const chip = 8;
+          me.hp = Math.max(0, me.hp - chip);
+          fb.className = 'feedback show wrong';
+          fb.textContent = `Whiffed! It was ${answerName}. ${me.name} takes ${chip} chip damage!`;
+          playTone('wrong');
+        }
+        drawHp();
+
+        if (foe.hp <= 0 || me.hp <= 0) { setTimeout(vsFinish, 1400); return; }
+        vsTurn = 1 - vsTurn;
+        setTimeout(loadVsQuestion, 1800);
+      }
+
+      function vsSkip() {
+        if (isProcessing) return;
+        isProcessing = true;
+        const me = players[vsTurn];
+        me.combo = 0;
+        me.hp = Math.max(0, me.hp - 5);
+        const fb = document.getElementById('vsFeedback');
+        fb.className = 'feedback show wrong';
+        fb.textContent = `${me.name} skipped \u2014 5 chip damage! (was ${titleCase(vsCurrentQ.answer)})`;
+        playTone('wrong');
+        drawHp();
+        if (me.hp <= 0) { setTimeout(vsFinish, 1400); return; }
+        vsTurn = 1 - vsTurn;
+        setTimeout(loadVsQuestion, 1600);
+      }
+
+      function vsFinish() {
+        let winner, loser;
+        if (players[0].hp > 0 && players[1].hp > 0) {
+          winner = players[0].hp >= players[1].hp ? players[0] : players[1];
+        } else {
+          winner = players[0].hp > 0 ? players[0] : players[1];
+        }
+        loser = winner === players[0] ? players[1] : players[0];
+        document.getElementById('vsFinishHim').style.display = 'block';
+        document.getElementById('vsPanel').className = 'panel fatality';
+        playTone('combo');
         setTimeout(() => {
-          current = 0; lives = 5; hintsUsed = 0; score = 0; combo = 0; maxCombo = 0;
-          isFinalRound = false; isProcessing = false;
-          renderLives(); show('gameScreen'); loadQuestion();
+          document.getElementById('vsWinner').textContent = `${winner.name} WINS!`;
+          document.getElementById('vsResult').textContent =
+            `${winner.name} ${winner.hp} HP  \u2022  ${loser.name} ${loser.hp} HP`;
+          show('vsOverScreen');
+        }, 1200);
+      }
+
+      function startVS() {
+        stopVoice();
+        showLoading();
+        playTone('coin');
+        setTimeout(() => {
+          vsMode = true; voiceMode = false;
+          players = [{ name: 'PLAYER 1', hp: 100, combo: 0 }, { name: 'PLAYER 2', hp: 100, combo: 0 }];
+          vsTurn = 0;
+          const pool = (allQuestions && allQuestions.length) ? allQuestions : fallbackQuestions;
+          vsQueue = shuffle(pool); vsQIndex = 0;
+          isProcessing = false;
+          drawHp();
+          show('vsGameScreen');
+          loadVsQuestion();
         }, 2000);
       }
-      
+
+      // ---------- Shareable score card ----------
+      function scoreTitle(pts) {
+        if (pts >= 31) return 'ARCADE LEGEND';
+        if (pts >= 21) return 'HIGH SCORER';
+        if (pts >= 13) return 'PLAYER TWO MATERIAL';
+        if (pts >= 6) return 'CONTINUE?';
+        return 'BUTTON MASHER';
+      }
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+      function buildScoreCard(name) {
+        const canvas = document.getElementById('cardCanvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const draw = () => {
+          const pink = '#ff33aa', cyan = '#0ff', gold = '#ffaa00';
+          const font = px => `${px}px "Press Start 2P", monospace`;
+          ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+
+          ctx.strokeStyle = cyan; ctx.lineWidth = 14;
+          ctx.shadowColor = cyan; ctx.shadowBlur = 30;
+          roundRect(ctx, 30, 30, W - 60, H - 60, 32); ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          ctx.textAlign = 'center';
+          ctx.fillStyle = pink; ctx.shadowColor = pink; ctx.shadowBlur = 24;
+          ctx.font = font(74); ctx.fillText('PLOT TWISTED', W / 2, 180);
+          ctx.shadowBlur = 12; ctx.fillStyle = gold; ctx.font = font(28);
+          ctx.fillText('GAMING EDITION', W / 2, 232);
+          ctx.shadowBlur = 0;
+
+          const cx = W / 2 - 210, cy = 300, cw = 420, ch = 300;
+          ctx.fillStyle = '#888'; roundRect(ctx, cx, cy, cw, ch, 24); ctx.fill();
+          ctx.fillStyle = '#666'; roundRect(ctx, cx + 18, cy + 18, cw - 36, ch - 92, 12); ctx.fill();
+          ctx.fillStyle = '#111'; roundRect(ctx, cx + 44, cy + 44, cw - 88, ch - 160, 8); ctx.fill();
+          ctx.fillStyle = cyan; ctx.font = font(30); ctx.shadowColor = cyan; ctx.shadowBlur = 10;
+          ctx.fillText(((name || '').toUpperCase().slice(0, 3)) || 'YOU', W / 2, cy + 118);
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#444';
+          for (let i = 0; i < 5; i++) ctx.fillRect(cx + 62 + i * 62, cy + ch - 46, 40, 26);
+
+          ctx.fillStyle = gold; ctx.shadowColor = gold; ctx.shadowBlur = 26;
+          ctx.font = font(42); ctx.fillText('SCORE', W / 2, 702);
+          ctx.font = font(148); ctx.fillText(String(score), W / 2, 852);
+          ctx.shadowBlur = 0;
+
+          ctx.fillStyle = pink; ctx.shadowColor = pink; ctx.shadowBlur = 16;
+          ctx.font = font(32); ctx.fillText(scoreTitle(score), W / 2, 936);
+          ctx.shadowBlur = 0;
+
+          ctx.fillStyle = cyan; ctx.font = font(25);
+          ctx.fillText(`MAX COMBO ${maxCombo}   \u2022   ${current}/${questions.length} CLUES`, W / 2, 1008);
+
+          ctx.fillStyle = 'rgba(255,255,255,0.045)';
+          for (let y = 60; y < H - 60; y += 8) ctx.fillRect(45, y, W - 90, 3);
+
+          ctx.fillStyle = gold; ctx.shadowColor = gold; ctx.shadowBlur = 10;
+          ctx.font = font(30); ctx.fillText('TRUST NOBODY', W / 2, 1200);
+          ctx.shadowBlur = 0; ctx.fillStyle = '#888'; ctx.font = font(19);
+          ctx.fillText('bencampbell.netlify.app', W / 2, 1250);
+        };
+        if (document.fonts && document.fonts.load) {
+          Promise.all([
+            document.fonts.load('74px "Press Start 2P"'),
+            document.fonts.load('28px "Press Start 2P"')
+          ]).then(draw).catch(draw);
+        } else {
+          draw();
+        }
+      }
+      function cardHintMsg(text) {
+        const el = document.getElementById('cardHint');
+        if (el) el.textContent = text;
+      }
+      function shareCard() {
+        const canvas = document.getElementById('cardCanvas');
+        // Redraw synchronously right before export so the buffer is never blank.
+        buildScoreCard(scoreSaved ? (document.getElementById('initials').value || '') : '');
+
+        const doExport = () => {
+          if (!canvas.toBlob) {
+            try {
+              const url = canvas.toDataURL('image/png');
+              window.open(url, '_blank');
+              cardHintMsg('Opened image in a new tab — save it from there.');
+            } catch (e) { cardHintMsg('Could not export — long-press the card to save.'); }
+            return;
+          }
+          canvas.toBlob((blob) => {
+            if (!blob) { cardHintMsg('Could not export — long-press the card to save.'); return; }
+            const file = new File([blob], 'plot-twisted-score.png', { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              navigator.share({
+                files: [file],
+                title: 'Plot Twisted',
+                text: `I scored ${score} on Plot Twisted: Gaming Edition!`
+              }).then(() => cardHintMsg('Shared! 🎉'))
+                .catch(() => downloadBlob(blob));
+            } else {
+              downloadBlob(blob);
+            }
+          }, 'image/png');
+        };
+
+        function downloadBlob(blob) {
+          try {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'plot-twisted-score.png';
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+            cardHintMsg('Card downloaded! Check your files. 💾');
+          } catch (e) {
+            cardHintMsg('Download blocked here — long-press the card to save.');
+          }
+        }
+
+        // Give the redraw a beat (font load) before exporting.
+        setTimeout(doExport, 120);
+      }
+
       function updateSettingButton(button, setting) {
         if (settings[setting]) {
           button.textContent = 'ENABLED';
@@ -507,63 +1306,106 @@
           button.className = 'setting-toggle off';
         }
       }
-      
-      // Event listeners
+
+      // ---------- Settings wiring ----------
+      const SETTING_TOGGLES = [
+        ['toggleHints', 'hints'],
+        ['toggleSound', 'sound'],
+        ['toggleContrast', 'contrast'],
+        ['toggleVoice', 'voice'],
+        ['toggleEaster', 'easter'],
+        ['toggleFuzzy', 'fuzzy'],
+        ['toggleMom', 'mom'],
+        ['toggleFatality', 'fatality']
+      ];
+      function refreshSettingsUI() {
+        SETTING_TOGGLES.forEach(([id, setting]) => {
+          updateSettingButton(document.getElementById(id), setting);
+        });
+        applyContrast();
+      }
+      function enhanceSettingToggle(toggleId, setting) {
+        document.getElementById(toggleId).onclick = () => {
+          settings[setting] = !settings[setting];
+          updateSettingButton(document.getElementById(toggleId), setting);
+          if (setting === 'contrast') applyContrast();
+          if (setting === 'sound' && settings.sound) playTone('hint');
+          persistSettings();
+        };
+      }
+
+      // ---------- Event listeners ----------
       document.getElementById('newGame').onclick = startNewGame;
+      document.getElementById('moreModes').onclick = () => show('moreModesScreen');
+      document.getElementById('modesBack').onclick = () => show('startScreen');
       document.getElementById('howTo').onclick = () => show('howToScreen');
       document.getElementById('settings').onclick = () => show('settingsScreen');
-      document.getElementById('backToMenu').onclick = () => show('startScreen');
-      document.getElementById('saveSettings').onclick = () => show('startScreen');
-      document.getElementById('playAgain').onclick = startNewGame;
-      document.getElementById('mainMenu').onclick = () => show('startScreen');
+      document.getElementById('backToMenu').onclick = () => show('settingsScreen');
+      document.getElementById('saveSettings').onclick = () => { persistSettings(); show('startScreen'); };
+      document.getElementById('playAgain').onclick = () => {
+        const wasVoice = voiceMode;
+        stopVoice();
+        showLoading(); playTone('coin');
+        setTimeout(() => beginRound(wasVoice), 2000);
+      };
+      document.getElementById('mainMenu').onclick = () => { stopVoice(); renderScores(); show('startScreen'); };
       document.getElementById('endBtn').onclick = endGame;
       document.getElementById('submitBtn').onclick = submitAnswer;
       document.getElementById('skipBtn').onclick = skipQuestion;
       document.getElementById('hintBtn').onclick = giveHint;
-      
+      document.getElementById('saveScoreBtn').onclick = saveHighScore;
+
+      // Mode + VS + voice + share
+      document.getElementById('vsGame').onclick = startVS;
+      document.getElementById('voiceGame').onclick = startVoiceGame;
+      document.getElementById('shareCardBtn').onclick = shareCard;
+      document.getElementById('repeatBtn').onclick = startVoiceListen;
+      document.getElementById('vsSubmitBtn').onclick = vsSubmit;
+      document.getElementById('vsSkipBtn').onclick = vsSkip;
+      document.getElementById('vsEndBtn').onclick = () => { if (vsMode) vsFinish(); };
+      document.getElementById('vsRematch').onclick = startVS;
+      document.getElementById('vsMenu').onclick = () => { vsMode = false; show('startScreen'); };
+      document.getElementById('vsAnswer').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') vsSubmit();
+      });
+
       document.getElementById('speakBtn').onclick = () => {
         if (!settings.voice) {
           feedbackEl.className = 'feedback show wrong';
           feedbackEl.textContent = 'Voice input disabled in settings!';
           return;
         }
-        
-        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        if (!VOICE_SUPPORTED) {
           feedbackEl.className = 'feedback show wrong';
-          feedbackEl.textContent = 'Voice recognition not supported!';
+          feedbackEl.textContent = IS_IOS ? 'Voice not supported on iPhone/iPad' : 'Voice recognition not supported!';
           return;
         }
-        
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechRecognition = SR_CTOR;
         const recognition = new SpeechRecognition();
-        
         recognition.continuous = false;
         recognition.interimResults = false;
         recognition.lang = 'en-US';
-        
+
         const speakBtn = document.getElementById('speakBtn');
         speakBtn.style.background = '#f00';
         speakBtn.style.color = '#fff';
         speakBtn.textContent = '🔴 LISTENING';
-        
+
         recognition.onresult = (event) => {
           const result = event.results[0][0].transcript;
           answerInput.value = result;
           feedbackEl.className = 'feedback show';
           feedbackEl.textContent = `Heard: "${result}"`;
         };
-        
         recognition.onerror = (event) => {
           feedbackEl.className = 'feedback show wrong';
           feedbackEl.textContent = `Voice error: ${event.error}`;
         };
-        
         recognition.onend = () => {
           speakBtn.style.background = '#000';
           speakBtn.style.color = '#ffaa00';
           speakBtn.textContent = '🎤 SPEAK';
         };
-        
         try {
           recognition.start();
         } catch (error) {
@@ -574,28 +1416,36 @@
           speakBtn.textContent = '🎤 SPEAK';
         }
       };
-      
+
       answerInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') submitAnswer();
       });
-      
-      // Settings toggles
-      function enhanceSettingToggle(toggleId, setting) {
-        document.getElementById(toggleId).onclick = (e) => {
-          settings[setting] = !settings[setting];
-          updateSettingButton(e.target, setting);
-        };
+      document.getElementById('initials').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') saveHighScore();
+      });
+
+      SETTING_TOGGLES.forEach(([id, setting]) => enhanceSettingToggle(id, setting));
+
+      // ---------- Boot ----------
+      loadSettings();
+      refreshSettingsUI();
+      renderScores();
+      loadClues();
+
+      // Relabel Voice Mode up front on devices that can't run it (e.g. iPhone).
+      if (!VOICE_SUPPORTED) {
+        const vb = document.getElementById('voiceGame');
+        vb.textContent = '🎤 VOICE (desktop/Android)';
+        vb.classList.add('mode-unavailable');
+        const vc = document.getElementById('voiceCaption');
+        if (vc) vc.textContent = IS_IOS
+          ? 'Not available on iPhone/iPad \u2014 needs Android or desktop.'
+          : 'Not available in this browser \u2014 try Chrome or Edge.';
+        // In-game SPEAK helper is pointless without recognition; hide it.
+        const sb = document.getElementById('speakBtn');
+        if (sb) sb.style.display = 'none';
       }
-      
-      enhanceSettingToggle('toggleHints', 'hints');
-      enhanceSettingToggle('toggleSound', 'sound');
-      enhanceSettingToggle('toggleContrast', 'contrast');
-      enhanceSettingToggle('toggleVoice', 'voice');
-      enhanceSettingToggle('toggleEaster', 'easter');
-      enhanceSettingToggle('toggleFuzzy', 'fuzzy');
-      enhanceSettingToggle('toggleMom', 'mom');
-      enhanceSettingToggle('toggleFatality', 'fatality');
-      
+
     } catch (error) {
       console.error('Game initialization error:', error);
     }
